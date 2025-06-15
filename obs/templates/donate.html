@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Roboto Slab', serif;
+            background: transparent;
+        }
+
+        #alert {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            max-width: 600px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow:
+                2px 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(255, 215, 0, 0.6);
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            line-height: 1.4;
+        }
+
+        #alert.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        #alert.hide {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        .donor-name {
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: nameShine 2s ease-in-out infinite;
+            display: inline;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        @keyframes nameShine {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+                transform: scale(1);
+            }
+
+            50% {
+                background-position: 100% 50%;
+                transform: scale(1.05);
+            }
+        }
+
+        .donation-amount {
+            background: linear-gradient(45deg, #ffd700, #fff, #ffd700);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: amountGlow 1.5s ease-in-out infinite;
+            display: inline;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 8px;
+        }
+
+        @keyframes amountGlow {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            }
+
+            50% {
+                background-position: 100% 50%;
+                text-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        .donation-message {
+            color: #ffed4e;
+            font-style: italic;
+            animation: messageFloat 3s ease-in-out infinite;
+            display: inline;
+            font-size: 22px;
+        }
+
+        @keyframes messageFloat {
+
+            0%,
+            100% {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+
+            50% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+        }
+
+        .regular-text {
+            color: #e0e0e0;
+            display: inline;
+        }
+
+        .emoji {
+            display: inline-block;
+            animation: emojiSpin 2s ease-in-out infinite;
+            margin: 0 5px;
+        }
+
+        @keyframes emojiSpin {
+
+            0%,
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(10deg) scale(1.1);
+            }
+        }
+
+        /* Floating sparkles */
+        .sparkle {
+            position: absolute;
+            color: #ffd700;
+            font-size: 16px;
+            pointer-events: none;
+            animation: sparkleFloat 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes sparkleFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotate(0deg);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(0.5) rotate(360deg);
+            }
+        }
+
+        /* Text typing effect */
+        .typing-effect {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 2s steps(40, end) forwards;
+            border-right: 3px solid #ffd700;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+                border-right-color: #ffd700;
+            }
+
+            to {
+                width: 100%;
+                border-right-color: transparent;
+            }
+        }
+
+        /* Pulsing glow effect for the whole text */
+        .pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                text-shadow:
+                    2px 2px 4px rgba(0, 0, 0, 0.8),
+                    0 0 20px rgba(255, 215, 0, 0.6);
+            }
+
+            50% {
+                text-shadow:
+                    2px 2px 4px rgba(0, 0, 0, 0.8),
+                    0 0 40px rgba(255, 215, 0, 0.9),
+                    0 0 60px rgba(255, 215, 0, 0.5);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="alert" class="pulse-glow"></div>
+
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+
+    <script>
+        const alertBox = document.getElementById("alert");
+        const socket = io("https://e76f969e-1622-4b45-ba3a-3e4237a8e717-00-1jeluoj03pimm.pike.replit.dev/");
+        const queue = [];
+        let isShowing = false;
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+        }
+
+        function createSparkles() {
+            const sparkleEmojis = ['✨', '⭐', '💫', '🌟', '💎'];
+
+            for (let i = 0; i < 8; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+                sparkle.style.left = Math.random() * 500 + 'px';
+                sparkle.style.bottom = Math.random() * 50 + 100 + 'px';
+                sparkle.style.animationDelay = Math.random() * 1 + 's';
+
+                document.body.appendChild(sparkle);
+
+                // Remove sparkle after animation
+                setTimeout(() => {
+                    if (document.body.contains(sparkle)) {
+                        document.body.removeChild(sparkle);
+                    }
+                }, 2000);
+            }
+        }
+
+        function showDonation(data) {
+            isShowing = true;
+
+            createSparkles();
+            const donorName = `<span class="donor-name">${data.username}</span>`;
+            const amount = `<span class="donation-amount">${formatCurrency(data.amount)}</span>`;
+            const message = data.message ?
+                `<span class="donation-message">"${data.message}"</span>` :
+                '<span class="donation-message">❤️</span>';
+
+            alertBox.innerHTML = `
+        <span class="regular-text">🎉</span>
+        ${donorName}
+        <span class="regular-text">đã ném donate vào mặt bạn</span>
+        ${amount}
+        <span class="emoji">💰</span>
+        <br>
+        <span class="regular-text">💌 Lời nhắn:</span>
+        ${message}
+        <span class="emoji">✨</span>
+    `;
+
+            alertBox.classList.remove('hide');
+            alertBox.classList.add('show');
+
+            const text = `${data.username} đã ném donate vào mặt bạn ${data.amount} với lời nhắn nhủ iu thương "${data.message}"`;
+            fetch("/read", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text })
+            })
+                .then(res => res.json())
+                .then(res => {
+                    const duration = res.duration * 1000; // chuyển giây thành mili giây
+                    const totalDisplayTime = duration + 2000; // thêm 2 giây để hiệu ứng kết thúc
+
+                    setTimeout(() => {
+                        alertBox.classList.remove('show');
+                        alertBox.classList.add('hide');
+
+                        setTimeout(() => {
+                            isShowing = false;
+                            if (queue.length > 0) {
+                                showDonation(queue.shift());
+                            }
+                        }, 1000);
+                    }, totalDisplayTime);
+                })
+                .catch(err => {
+                    console.error('Lỗi khi gửi hoặc nhận từ backend:', err);
+
+                    // fallback nếu có lỗi: vẫn hiển thị trong 11s
+                    setTimeout(() => {
+                        alertBox.classList.remove('show');
+                        alertBox.classList.add('hide');
+
+                        setTimeout(() => {
+                            isShowing = false;
+                            if (queue.length > 0) {
+                                showDonation(queue.shift());
+                            }
+                        }, 1000);
+                    }, 11000);
+                });
+        }
+
+        socket.on("donation", data => {
+            if (isShowing) {
+                queue.push(data);
+            } else {
+                showDonation(data);
+            }
+        });
+
+        alertBox.addEventListener('transitionend', (e) => {
+            if (e.target === alertBox && alertBox.classList.contains('hide')) {
+                alertBox.classList.remove('hide');
+            }
+        });
+    </script>
+</body>
+
+</html>
