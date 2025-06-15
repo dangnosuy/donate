@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Donation - QR Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #1a1a1a 50%, #2d1b00 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+
+        /* Gaming controller floating animation */
+        .floating-controllers {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .controller-icon {
+            position: absolute;
+            font-size: 30px;
+            color: rgba(255, 215, 0, 0.1);
+            animation: controllerFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes controllerFloat {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            33% {
+                transform: translateY(-30px) rotate(10deg);
+            }
+
+            66% {
+                transform: translateY(-15px) rotate(-5deg);
+            }
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #ffd700;
+            opacity: 0.8;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .donation-form {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffd700;
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow:
+                0 0 50px rgba(255, 215, 0, 0.3),
+                inset 0 0 50px rgba(255, 215, 0, 0.05);
+            animation: formGlow 4s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes formGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 50px rgba(255, 215, 0, 0.3), inset 0 0 50px rgba(255, 215, 0, 0.05);
+            }
+
+            50% {
+                box-shadow: 0 0 80px rgba(255, 215, 0, 0.5), inset 0 0 50px rgba(255, 215, 0, 0.1);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            transform: scale(1.02);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .amount-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .amount-btn {
+            padding: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffd700;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .amount-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .amount-btn.selected {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+            animation: selectedPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes selectedPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .custom-amount {
+            margin-top: 15px;
+        }
+
+        .custom-amount input {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 15px;
+            color: #000;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: buttonShine 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes buttonShine {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .generate-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .generate-btn:hover::before {
+            animation: shine 0.7s ease-in-out;
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+                opacity: 0;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .qr-result {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            animation: fadeInScale 0.5s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Gaming elements */
+        .gaming-icons {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 20px;
+            color: rgba(255, 215, 0, 0.6);
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .donation-form {
+                padding: 30px 20px;
+            }
+
+            .amount-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .amount-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated background particles -->
+    <div class="particles"></div>
+
+    <!-- Floating gaming controllers -->
+    <div class="floating-controllers"></div>
+
+    <div class="header">
+        <h1>🎮 GAMING DONATION 🎮</h1>
+        <p class="subtitle">Hỗ trợ streamer yêu thích của bạn!</p>
+    </div>
+
+    <div class="container">
+        <form class="donation-form" id="donationForm">
+            <div class="gaming-icons">🎯</div>
+
+            <div class="form-group">
+                <label for="donorName">👤 Tên người donate</label>
+                <input type="text" id="donorName" name="donorName" placeholder="Nhập tên của bạn..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="donationMessage">💬 Nội dung donate</label>
+                <textarea id="donationMessage" name="donationMessage"
+                    placeholder="Để lại lời nhắn động viên..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>💰 Số tiền donate</label>
+                <div class="amount-buttons">
+                    <button type="button" class="amount-btn" data-amount="8000">8K VNĐ</button>
+                    <button type="button" class="amount-btn" data-amount="10000">10K VNĐ</button>
+                    <button type="button" class="amount-btn" data-amount="20000">20K VNĐ</button>
+                    <button type="button" class="amount-btn" data-amount="50000">50K VNĐ</button>
+                    <button type="button" class="amount-btn" data-amount="100000">100K VNĐ</button>
+                    <button type="button" class="amount-btn" data-amount="200000">200K VNĐ</button>
+                </div>
+                <div class="custom-amount">
+                    <input type="text" id="customAmount" placeholder="Hoặc nhập số tiền khác..." />
+                </div>
+            </div>
+
+            <button type="submit" class="generate-btn">
+                🎮 TẠO MÃ QR DONATION 🎮
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Đang tạo mã QR...</p>
+            </div>
+
+            <div class="qr-result" id="qrResult">
+                <h3>✅ Mã QR đã được tạo thành công!</h3>
+                <div id="qrCodeContainer"></div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Create floating gaming controllers
+        function createFloatingControllers() {
+            const controllers = ['🎮', '🕹️', '⚡', '🎯', '🏆', '💎'];
+            const containerElement = document.querySelector('.floating-controllers');
+
+            for (let i = 0; i < 8; i++) {
+                const controller = document.createElement('div');
+                controller.className = 'controller-icon';
+                controller.textContent = controllers[Math.floor(Math.random() * controllers.length)];
+                controller.style.left = Math.random() * 100 + '%';
+                controller.style.top = Math.random() * 100 + '%';
+                controller.style.animationDelay = Math.random() * 8 + 's';
+                controller.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                containerElement.appendChild(controller);
+            }
+        }
+
+        // Initialize background animations
+        createParticles();
+        createFloatingControllers();
+
+        // Amount button selection
+        const amountButtons = document.querySelectorAll('.amount-btn');
+        const customAmountInput = document.getElementById('customAmount');
+        let selectedAmount = 0;
+
+        amountButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                // Remove selected class from all buttons
+                amountButtons.forEach(btn => btn.classList.remove('selected'));
+
+                // Add selected class to clicked button
+                this.classList.add('selected');
+
+                // Set selected amount
+                selectedAmount = parseInt(this.dataset.amount);
+
+                // Clear custom amount input
+                customAmountInput.value = '';
+
+                // Add click animation
+                this.style.animation = 'none';
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 100);
+            });
+        });
+
+        // Custom amount input
+        customAmountInput.addEventListener('input', function () {
+            // Remove selected class from all buttons
+            amountButtons.forEach(btn => btn.classList.remove('selected'));
+
+            // Set selected amount from custom input
+            const customValue = parseInt(this.value.replace(/[^\d]/g, ''));
+            selectedAmount = isNaN(customValue) ? 0 : customValue;
+
+            // Format input value
+            if (this.value) {
+                const formatted = customValue.toLocaleString('vi-VN');
+                this.value = formatted;
+            }
+        });
+
+        // Form submission
+        document.getElementById('donationForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const donorName = document.getElementById('donorName').value.trim();
+            const donationMessage = document.getElementById('donationMessage').value.trim();
+
+            // Validation
+            if (!donorName) {
+                alert('Vui lòng nhập tên người donate!');
+                return;
+            }
+
+            if (selectedAmount <= 0) {
+                alert('Vui lòng chọn số tiền donate!');
+                return;
+            }
+
+            // Show loading
+            const loadingElement = document.getElementById('loading');
+            const qrResultElement = document.getElementById('qrResult');
+            const submitButton = document.querySelector('.generate-btn');
+
+            loadingElement.style.display = 'block';
+            qrResultElement.style.display = 'none';
+            submitButton.disabled = true;
+            submitButton.textContent = '⏳ ĐANG XỬ LÝ...';
+
+            // Prepare data for API call
+            const donationData = {
+                donorName: donorName,
+                message: donationMessage,
+                amount: selectedAmount
+            };
+
+            try {
+                // Simulate API call (replace with your actual API endpoint)
+                console.log('Donation data to send to API:', donationData);
+
+               //TODO: Replace this with actual API call
+                const response = await fetch('https://e956e5a7-26a9-4ad5-8c85-aaed15bde0c2-00-3g01p0gj0e5t7.sisko.replit.dev/api/generate-qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8',
+                    },
+                    body: JSON.stringify(donationData)
+                });
+                const result = await response.json();
+                console.log("Result", result)
+                // Simulate API response delay
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Hide loading and show success
+                loadingElement.style.display = 'none';
+                qrResultElement.style.display = 'block';
+
+                // Display success message with donation info
+                document.getElementById('qrCodeContainer').innerHTML = `
+                    <div style="margin-top: 15px; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <img src="${result.qr}" 
+                                 alt="QR Code Donation" 
+                                 style="max-width: 250px; width: 100%; height: auto; border-radius: 10px; border: 3px solid #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.3);"
+                                 onload="this.style.animation='fadeInScale 0.5s ease-out'"
+                                 onerror="this.style.display='none'; this.parentElement.innerHTML='<p style=color:red>❌ Không thể tải mã QR</p>'" />
+                        </div>
+                        <div style="text-align: left;">
+                            <p style="margin: 8px 0;"><strong>👤 Người donate:</strong> ${donorName}</p>
+                            <p style="margin: 8px 0;"><strong>💰 Số tiền:</strong> ${selectedAmount.toLocaleString('vi-VN')} VNĐ</p>
+                            ${donationMessage ? `<p style="margin: 8px 0;"><strong>💬 Lời nhắn:</strong> ${donationMessage}</p>` : ''}
+                            <p style="margin-top: 15px; color: #ffd700; text-align: center;"><em>📱 Quét mã QR để chuyển tiền</em></p>
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                 console.error('Error generating QR code:', error);
+                
+                // Show error message
+                loadingElement.style.display = 'none';
+                qrResultElement.style.display = 'block';
+                document.getElementById('qrCodeContainer').innerHTML = `
+                    <div style="padding: 20px; background: rgba(255,0,0,0.1); border-radius: 15px; text-align: center;">
+                        <p style="color: #ff6b6b; font-size: 1.1rem;">❌ Có lỗi xảy ra khi tạo mã QR</p>
+                        <p style="color: #ffd700; margin-top: 10px;">Vui lòng thử lại sau hoặc liên hệ streamer</p>
+                        <p style="color: #888; font-size: 0.9rem; margin-top: 10px;">Chi tiết lỗi: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                // Reset submit button
+                submitButton.disabled = false;
+                submitButton.textContent = '🎮 TẠO MÃ QR DONATION 🎮';
+            }
+        });
+
+        // Add input animations
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+
+            input.addEventListener('blur', function () {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add random gaming emojis animation
+        function addRandomEmoji() {
+            const emojis = ['🎮', '🕹️', '⚡', '🎯', '🏆', '💎', '🔥', '⭐'];
+            const emoji = document.createElement('div');
+            emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            emoji.style.position = 'fixed';
+            emoji.style.left = Math.random() * window.innerWidth + 'px';
+            emoji.style.top = '-50px';
+            emoji.style.fontSize = Math.random() * 20 + 20 + 'px';
+            emoji.style.zIndex = '5';
+            emoji.style.pointerEvents = 'none';
+            emoji.style.opacity = '0.7';
+
+            document.body.appendChild(emoji);
+
+            const animation = emoji.animate([
+                { transform: 'translateY(-50px) rotate(0deg)', opacity: 0.7 },
+                { transform: `translateY(${window.innerHeight + 50}px) rotate(360deg)`, opacity: 0 }
+            ], {
+                duration: Math.random() * 3000 + 4000,
+                easing: 'ease-in'
+            });
+
+            animation.onfinish = () => {
+                document.body.removeChild(emoji);
+            };
+        }
+
+        // Add random emojis periodically
+        setInterval(addRandomEmoji, 3000);
+    </script>
+</body>
+
+</html>
