@@ -1,0 +1,7 @@
+- Thêm một tmux mới:
+tmux new -s flaskapp1
+- vào lại phiên:
+tmux attach -t flaskapp1
+- Xem danh sách
+tmux ls
+

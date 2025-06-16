@@ -8,17 +8,16 @@ app = Flask(__name__)
 
 # Cấu hình kết nối MySQL
 db_config = {
-    'host': 'gondola.proxy.rlwy.net',
-    'port': 12845,
-    'user': 'root',
-    'password': 'NcziOcjUSioWfTQjCUXAhhNHQaAWzSZy',
+    'host': 'localhost',
+    'user': 'webapp',
+    'password': 'your_strong_password',
     'database': 'webhooks_receiver',
     'charset': 'utf8mb4'
 }
 
-LIVE_ENDPOINT = "https://e76f969e-1622-4b45-ba3a-3e4237a8e717-00-1jeluoj03pimm.pike.replit.dev/notify"
+LIVE_ENDPOINT = "http://14.225.253.242:3001/notify"
 
-def handle_donation_message(cursor, transaction_content, amount_in):
+def handle_donation_message(cursor, conn, transaction_content, amount_in):
     match = re.search(r'DNT[A-Z0-9]{6,}', transaction_content or '')
     if not match:
         return
@@ -47,6 +46,13 @@ def handle_donation_message(cursor, transaction_content, amount_in):
         res = requests.post(LIVE_ENDPOINT, json=payload, timeout=5)
         if res.status_code == 200:
             app.logger.info("Đã gửi đến livestream thành công")
+            insert_query = """
+                INSERT INTO tb_successful_transactions (username, message, amount, token)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor.execute(insert_query, (username, message, amount_in, token))
+            conn.commit()
+            app.logger.info(f"Đã lưu thông tin người gửi thành công!")
         else:
             app.logger.warning(f"Lỗi gửi livestream: {res.status_code}")
     except Exception as e:
@@ -101,7 +107,7 @@ def webhook():
         # gửi kết quả đến serverRelay bao gồm các thông điệp hay thông tin gì đó
         # serverRelay gửi lên livestream => Đã oke, xử lý nhỏ nữa thôi
         # 🔁 Gửi thông điệp nếu nội dung có token hợp lệ
-        handle_donation_message(cursor, transaction_content, amount_in)
+        handle_donation_message(cursor, conn, transaction_content, amount_in)
 
         
         return jsonify({'success': True})
@@ -116,7 +122,7 @@ def webhook():
             conn.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=6000, debug=True)
 
 #mysql://root:NcziOcjUSioWfTQjCUXAhhNHQaAWzSZy@gondola.proxy.rlwy.net:12845/railway
 #API Token: BLWEWEZZX8JGTVEVPRVTBJDC22K5M0DSADULFHRNHPIT1U0GHYNXVDIWLAZY469X

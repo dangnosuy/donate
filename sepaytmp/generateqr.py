@@ -4,16 +4,17 @@ import mysql.connector
 import random
 import string
 from mysql.connector import Error
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
+#CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # Thông tin cấu hình MySQL
 db_config = {
-    'host': 'gondola.proxy.rlwy.net',
-    'port': 12845,
-    'user': 'root',
-    'password': 'NcziOcjUSioWfTQjCUXAhhNHQaAWzSZy',
+    'host': 'localhost',
+    'user': 'webapp',
+    'password': 'your_strong_password',
     'database': 'webhooks_receiver',
     'charset': 'utf8mb4'
 }
@@ -27,7 +28,7 @@ def generate_token():
     random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return prefix + random_part
 
-@app.route('/api/generate-qr', methods=['POST'])
+@app.route('/api/generate-qr', methods=['POST', 'OPTIONS'])
 def generate_qr():
     data = request.get_json()
 
@@ -77,5 +78,64 @@ def generate_qr():
         "success": True
     })
 
+@app.route('/api/top-donors', methods=['GET'])
+def get_top_donors_last_month():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+
+        # Lấy dữ liệu từ 30 ngày gần nhất
+        query = """
+            SELECT username, SUM(amount) AS total_amount
+            FROM tb_successful_transactions
+            WHERE created_at >= NOW() - INTERVAL 30 DAY
+            GROUP BY username
+            ORDER BY total_amount DESC
+            LIMIT 3
+        """
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+        return jsonify({
+            'success': True,
+            'range': '30_days',
+            'top_donors': result
+        })
+    except Error as e:
+        return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/api/donation-history', methods=['GET'])
+def get_donation_history():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT username, message, amount, token, created_at
+            FROM tb_successful_transactions
+            ORDER BY created_at DESC
+	    LIMIT 20
+        """
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+        return jsonify({
+            'success': True,
+            'history': result
+        })
+    except Error as e:
+        return jsonify({'success': False, 'message': f'Database error: {str(e)}'}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=81, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
