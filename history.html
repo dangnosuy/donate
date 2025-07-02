@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation History - 24H</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #0f0f0f 50%, #1a1a1a 75%, #0a0a0a 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        /* Gaming Background Animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 165, 0, 0.08) 0%, transparent 50%);
+            animation: backgroundPulse 4s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes backgroundPulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            margin-bottom: 1rem;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            0% { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.3)); }
+            100% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(255, 215, 0, 0.6)); }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #cccccc;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(255, 215, 0, 0.6);
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            transform: rotate(45deg);
+            animation: cardShine 3s linear infinite;
+        }
+
+        @keyframes cardShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #cccccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Table Container */
+        .table-container {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(26, 26, 26, 0.95) 100%);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 3rem;
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 215, 0, 0.1);
+        }
+
+        .table-header {
+            padding: 2rem;
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .table-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+        }
+
+        .table-subtitle {
+            color: #cccccc;
+            font-size: 1rem;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 165, 0, 0.15) 100%);
+            color: #FFD700;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            padding: 1.5rem 1rem;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+            position: relative;
+        }
+
+        th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #FFD700, #FFA500, #FFD700);
+            animation: headerGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes headerGlow {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.08) 0%, rgba(255, 165, 0, 0.05) 100%);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.1);
+        }
+
+        td {
+            padding: 1.2rem 1rem;
+            color: #ffffff;
+            position: relative;
+        }
+
+        .username {
+            font-weight: 600;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .amount {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+            font-size: 1.1rem;
+        }
+
+        .message {
+            max-width: 300px;
+            word-wrap: break-word;
+            font-style: italic;
+            color: #e0e0e0;
+        }
+
+        .datetime {
+            font-family: 'Orbitron', monospace;
+            color: #cccccc;
+            font-size: 0.9rem;
+        }
+
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            font-size: 1.5rem;
+            color: #FFD700;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-top: 3px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Download Button */
+        .download-container {
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .download-btn {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 1.5rem 3rem;
+            background: linear-gradient(45deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+            color: #000000;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 10px 25px rgba(255, 215, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 15px 35px rgba(255, 215, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .download-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .download-btn:hover::before {
+            animation: buttonShine 0.8s ease-in-out;
+        }
+
+        @keyframes buttonShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+
+        /* Error State */
+        .error {
+            text-align: center;
+            padding: 4rem;
+            color: #ff6b6b;
+            font-size: 1.3rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+            
+            th, td {
+                padding: 0.8rem 0.5rem;
+                font-size: 0.85rem;
+            }
+            
+            .download-btn {
+                padding: 1rem 2rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .table-wrapper::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-radius: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #FFA500, #FFD700);
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">DONATION HISTORY</h1>
+            <p class="subtitle">Lịch sử donate 24h qua</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="totalDonations">0</div>
+                <div class="stat-label">Tổng Donations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalAmount">0 VNĐ</div>
+                <div class="stat-label">Tổng Tiền</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgAmount">0 VNĐ</div>
+                <div class="stat-label">Trung Bình</div>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">Chi Tiết Donations</h2>
+                <p class="table-subtitle">Danh sách tất cả donations trong 24h qua</p>
+            </div>
+            
+            <div class="table-wrapper">
+                <div id="loadingState" class="loading">
+                    Đang tải dữ liệu
+                </div>
+                
+                <div id="errorState" class="error" style="display: none;">
+                    Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại sau.
+                </div>
+                
+                <table id="donationTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên Donor</th>
+                            <th>Số Tiền</th>
+                            <th>Tin Nhắn</th>
+                            <th>Thời Gian</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Download Button -->
+        <div class="download-container">
+            <button class="download-btn" id="downloadBtn" onclick="downloadExcel()" disabled>
+                📊 Tải Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- SheetJS Library for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        let donationData = [];
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 15;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+        }
+
+        // Format datetime
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // Update statistics
+        function updateStats(data) {
+            const totalDonations = data.length;
+            const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+            const avgAmount = totalDonations > 0 ? totalAmount / totalDonations : 0;
+
+            // Animate counter updates
+            animateCounter('totalDonations', totalDonations);
+            animateCounter('totalAmount', totalAmount, true);
+            animateCounter('avgAmount', Math.round(avgAmount), true);
+        }
+
+        // Animate counter with easing
+        function animateCounter(elementId, targetValue, isCurrency = false) {
+            const element = document.getElementById(elementId);
+            const startValue = 0;
+            const duration = 2000;
+            const startTime = performance.now();
+
+            function updateCounter(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function
+                const easeOutExpo = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                const currentValue = Math.round(startValue + (targetValue - startValue) * easeOutExpo);
+                
+                if (isCurrency) {
+                    element.textContent = formatCurrency(currentValue);
+                } else {
+                    element.textContent = currentValue.toLocaleString('vi-VN');
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCounter);
+                }
+            }
+
+            requestAnimationFrame(updateCounter);
+        }
+
+        // Populate table
+        function populateTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="username">${item.username}</td>
+                    <td class="amount">${formatCurrency(item.amount)}</td>
+                    <td class="message">${item.message || '❤️'}</td>
+                    <td class="datetime">${formatDateTime(item.created_at)}</td>
+                `;
+                
+                // Add stagger animation
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                tableBody.appendChild(row);
+                
+                setTimeout(() => {
+                    row.style.transition = 'all 0.5s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        }
+
+        // Fetch donation data
+        async function fetchDonationData() {
+            try {
+                const response = await fetch('https://generate-qr.flydigivietnam.com/api/donation-history-24h');
+                const result = await response.json();
+
+                if (result.success) {
+                    donationData = result.history;
+                    
+                    // Hide loading, show table
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('errorState').style.display = 'none';
+                    document.getElementById('donationTable').style.display = 'table';
+                    document.getElementById('downloadBtn').disabled = false;
+
+                    // Update UI
+                    updateStats(donationData);
+                    populateTable(donationData);
+                } else {
+                    throw new Error('API returned error');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                
+                // Show error state
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('donationTable').style.display = 'none';
+            }
+        }
+
+        // Download Excel
+        function downloadExcel() {
+            if (donationData.length === 0) {
+                alert('Không có dữ liệu để tải về');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = donationData.map((item, index) => ({
+                'STT': index + 1,
+                'Tên Donor': item.username,
+                'Số Tiền (VNĐ)': item.amount,
+                'Tin Nhắn': item.message || '',
+                'Thời Gian': formatDateTime(item.created_at)
+            }));
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Style the worksheet
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 5 },   // STT
+                { wch: 20 },  // Tên Donor
+                { wch: 15 },  // Số Tiền
+                { wch: 40 },  // Tin Nhắn
+                { wch: 20 }   // Thời Gian
+            ];
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Donation History 24H');
+
+            // Generate filename with current date
+            const now = new Date();
+            const filename = `donation_history_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.xlsx`;
+
+            // Download file
+            XLSX.writeFile(wb, filename);
+
+            // Visual feedback
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Đã Tải';
+            btn.style.background = 'linear-gradient(45deg, #00ff88, #00cc6a)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = 'linear-gradient(45deg, #FFD700 0%, #FFA500 50%, #FFD700 100%)';
+            }, 2000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            fetchDonationData();
+        });
+
+        // Auto-refresh every 5 minutes
+        setInterval(fetchDonationData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
