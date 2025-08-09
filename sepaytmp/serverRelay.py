@@ -21,6 +21,8 @@ def on_disconnect():
 @app.route('/notify', methods=['POST'])
 def notify():
     data = request.get_json()  # mong payload = { user, amount, message }
+    print(f"data: {data}")
+
     # 1) Broadcast tới tất cả client đang kết nối
     socketio.emit('donation', data)
     print('🚀 Emitted donation:', data)

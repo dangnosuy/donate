@@ -25,19 +25,20 @@ def handle_donation_message(cursor, conn, transaction_content, amount_in):
     token = match.group(0)
 
     # 🔍 Truy vấn bảng chứa thông điệp có dấu
-    select_query = "SELECT username, message FROM tb_donate_messages WHERE token = %s"
+    select_query = "SELECT username, message, voice FROM tb_donate_messages WHERE token = %s"
     cursor.execute(select_query, (token,))
     result = cursor.fetchone()
 
     if not result:
         return
 
-    username, message = result
+    username, message, voice = result
 
     # 🔁 Gửi thông điệp đến endpoint livestream
     payload = {
         "username": username,
         "message": message,
+	"voice" : voice,
         "amount": amount_in,
         "token": token
     }
